@@ -44,6 +44,14 @@ func (app *application) mount() http.Handler {
 
 	r.Route("/v1", func(r chi.Router) {
 		r.Get("/health", app.healthCheckHandler)
+
+		r.Route("/posts", func(r chi.Router) {
+			r.Post("/", app.createPostHandler)
+
+			r.Route("/{postId}", func(r chi.Router) {
+				r.Get("/", app.getPostById)
+			})
+		})
 	})
 
 	return r
