@@ -134,3 +134,42 @@ func getPostFromCtx(r *http.Request) *store.Post {
 	post := r.Context().Value(PostCtx).(*store.Post)
 	return post
 }
+
+type UpdatedPostPayload struct {
+	Title   *string `json:"title" validate:"omitempty,max100"`
+	Content *string `json:"content" validate:"omitempty,max1000"`
+}
+
+func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request) {
+	post := getPostFromCtx(r)
+
+	var payload UpdatedPostPayload
+
+	if err := readJSON(w, r, &payload); err != nil {
+		app.badRequestError(w, r, err)
+		return
+	}
+
+	if err := Validate.Struct(payload); err != nil {
+		app.badRequestError(w, r, err)
+		return
+	}
+
+	if payload.Title != nil {
+		post.Title = *payload.Title
+	}
+
+	if payload.Content != nil {
+		post.Content = *payload.Content
+	}
+
+	if err := app.store.Posts.UpdateByID(r.Context(), post); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	if err := writeJSON(w, http.StatusOK, post); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+}
