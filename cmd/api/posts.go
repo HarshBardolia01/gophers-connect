@@ -90,7 +90,7 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (app *application) deleteHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "postId")
 	id, err := strconv.ParseInt(idParam, 10, 64)
 
