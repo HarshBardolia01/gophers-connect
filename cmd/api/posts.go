@@ -48,7 +48,7 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
-func (app *application) getPostById(w http.ResponseWriter, r *http.Request) {
+func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "postId")
 	id, err := strconv.ParseInt(idParam, 10, 64)
 
@@ -69,6 +69,20 @@ func (app *application) getPostById(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+
+	comments, err := app.store.Comments.GetByPostID(ctx, post.ID)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			app.notFoundError(w, r, err)
+		default:
+			app.internalServerError(w, r, err)
+		}
+		return
+	}
+
+	post.Comments = comments
 
 	if err := writeJSON(w, http.StatusOK, post); err != nil {
 		app.internalServerError(w, r, err)
